@@ -3,7 +3,7 @@ import { pool } from '../../db/db.js';
 export const getCines = ( async (req, res) => {
   try {
     const [rows] = await pool.query('CALL sp_getCines()');
-    res.json(rows); // solo enviamos los datos
+    res.json(rows); 
   } catch (error) {
     console.error('Error al obtener cines:', error);
     res.status(500).json({ error: 'Error al obtener los cines' });
