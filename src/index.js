@@ -1,11 +1,7 @@
 import express from 'express';
 import cines from './routers/cines.routes.js';
 import peliculas from './routers/peliculas.routes.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { pool } from '../db/db.js';
 
 const app = express();
 
@@ -16,31 +12,32 @@ app.get('/', (req, res) => {
   res.render('index', { titulo: 'Inicio' });
 });
 
-app.get('/cines', (req, res) => {
-  res.render('cines', { titulo: 'Nuestros Cines' });
+app.get('/cines', async (req, res) => {
+  const [rows] = await pool.query('CALL sp_getCines()');
+  res.render('cines', { titulo: 'Nuestros Cines', cines:  rows[0] });
 });
 
-app.get('/peliculas', (req, res) => {
-  res.render('peliculas', { titulo: 'Cartelera' });
-});
-
-app.get('/peliculas/:id', (req, res) => {
-  res.render('pelicula', { titulo: 'Detalle de la Película' });
-});
-
-app.get('/cines', (req, res) => {
-  res.render('cine', { titulo: 'Cine' });
-});
-
-app.get('/cines/:id', (req, res) => {
-  res.render('cine', { titulo: 'Detalle del Cine' });
+app.get('/peliculas', async (req, res) => {
+  const [rows] = await pool.query('CALL sp_getPeliculass()');
+  res.render('peliculas', { titulo: 'Cartelera', peliculas: rows[0] });
 });
 
 
+app.get('/peliculas/:id', async (req, res) => {
+  const { id } = req.params;
+  const [rows] = await pool.query('CALL sp_getPelicula(?)', [id]);
+  res.render('pelicula', { titulo: 'Detalle de la Película', pelicula: rows[0][0] });
+});
+
+app.get('/cine/:id', (req, res) => {
+  res.render('cine', { titulo: 'Detalle del Cine', cine: [0][0] });
+});
 
 
-app.use(cines);
-app.use(peliculas);
+//para usar las apis de cines y peliculas
+/* app.use(cines);
+app.use(peliculas); */
+
 
 
 app.listen(3000, () => {
